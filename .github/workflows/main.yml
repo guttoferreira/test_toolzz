@@ -30,7 +30,11 @@ jobs:
       run: |
         echo "Running basic test..."
         docker pull wordpress:latest
-        docker run --rm wordpress:latest --version
+        docker run -d --name wordpress-test -p 8080:80 wordpress:latest
+        sleep 30 # Aguarda um pouco para o WordPress iniciar
+        curl -f http://localhost:8080 || exit 1
+        docker stop wordpress-test
+        docker rm wordpress-test
 
   deploy:
     runs-on: ubuntu-latest
