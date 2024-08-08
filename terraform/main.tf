@@ -20,13 +20,22 @@ provider "aws" {
 # VPC Configuration
 #########################################################
 
+data "aws_availability_zones" "available" {}
+
+locals {
+  exclude_az = "us-east-1e"  # Az excluída pois EKS não suporta a criação de instâncias do control plane na zona de disponibilidade us-east-1e
+  filtered_azs = [
+    for az in data.aws_availability_zones.available.names : az
+    if az != local.exclude_az
+  ]
+}
+
 module "vpc" {
   source                  = "./modules/vpc"
   name                    = var.vpc_name
   vpc_cidr                = var.vpc_cidr
-  azs                     = var.azs
-  private_subnets         = var.private_subnets
-  public_subnets          = var.public_subnets
+  private_subnets         = [for i in range(length(var.azs)) : cidrsubnet(var.vpc_cidr, 8, i + 1)]
+  public_subnets          = [for i in range(length(var.azs)) : cidrsubnet(var.vpc_cidr, 8, i + 100)]
   enable_nat_gateway      = false
   single_nat_gateway      = true
   enable_vpn_gateway      = false
@@ -57,10 +66,10 @@ module "ec2" {
   }
 }
 
-resource "aws_eip" "ec2" {
-  instance = module.ec2.id
-  domain   = "vpc"
-}
+# resource "aws_eip" "ec2" {
+#   instance = module.ec2.id
+#   domain   = "vpc"
+# }
 
 data "aws_secretsmanager_secret_version" "ec2_key_pair" {
   secret_id = aws_secretsmanager_secret.ec2_key_pair.id
@@ -168,8 +177,8 @@ module "eks" {
   }
 
   vpc_id                   = module.vpc.vpc_id
-  subnet_ids               = var.public_subnet_ids
-  control_plane_subnet_ids = var.public_subnet_ids
+  subnet_ids               = module.vpc.public_subnets
+  control_plane_subnet_ids = module.vpc.public_subnets
 
   eks_managed_node_group_defaults = {
     instance_types = ["m5.large"]
@@ -178,11 +187,11 @@ module "eks" {
   eks_managed_node_groups = {
     app_nodes = {
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["m5.large"]
+      instance_types = ["t2.micro"]
 
-      min_size     = 2
-      max_size     = 10
-      desired_size = 2
+      min_size     = 1
+      max_size     = 2
+      desired_size = 1
     }
   }
 
@@ -219,7 +228,7 @@ module "eks" {
 # Public Key - EC2
 
 resource "aws_secretsmanager_secret" "ec2_key_pair" {
-  name        = "ec2-keypair"
+  name        = "ec2-key-secret"
   description = "EC2 key pair public key"
 }
 
@@ -292,7 +301,7 @@ module "sg_rds" {
 }
 
 #########################################################
-# Secutiry Groups Configuration
+# IAM
 #########################################################
 
 resource "aws_iam_policy" "eks_full_access_policy" {

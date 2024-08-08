@@ -52,24 +52,6 @@ variable "public_subnet_ids" {
   default     = ["subnet-0818d78467a62b0e7", "subnet-04bd5e1b41cf71719", "subnet-055ac7273865037d5"]
 }
 
-# variable "enable_nat_gateway" {
-#   description = "Enable NAT Gateway"
-#   type        = bool
-#   default     = false
-# }
-
-# variable "single_nat_gateway" {
-#   description = "Use a single NAT Gateway"
-#   type        = bool
-#   default     = true
-# }
-
-# variable "enable_vpn_gateway" {
-#   description = "Enable VPN Gateway"
-#   type        = bool
-#   default     = false
-# }
-
 variable "ec2_name" {
   description = "Name of the EC2 instance"
   type        = string
