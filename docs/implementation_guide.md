@@ -10,7 +10,7 @@ A arquiterura foi construída de forma híbrica, utilizando modulos da comunidad
 
 Recursos utilizados:
 
-- 01 VPC "main" com 3 subnets públicas e 3 subnets privadas criadas na região us-east-1
+- 01 VPC "main" com 6 subnets públicas e 6 subnets privadas na região us-east-1
     - Tabelas de rotas publica e privada
     - Não foi criado NAT Gateway para subnets privadas
     - Criado Internet Gateway para subntes publicas
