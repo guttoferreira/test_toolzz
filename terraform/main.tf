@@ -34,8 +34,8 @@ module "vpc" {
   source                  = "./modules/vpc"
   name                    = var.vpc_name
   vpc_cidr                = var.vpc_cidr
-  private_subnets         = [for i in range(length(var.azs)) : cidrsubnet(var.vpc_cidr, 8, i + 1)]
-  public_subnets          = [for i in range(length(var.azs)) : cidrsubnet(var.vpc_cidr, 8, i + 100)]
+  private_subnets         = [for i in range(length(local.filtered_azs)) : cidrsubnet(var.vpc_cidr, 8, i + 1)]
+  public_subnets          = [for i in range(length(local.filtered_azs)) : cidrsubnet(var.vpc_cidr, 8, i + 100)]
   enable_nat_gateway      = false
   single_nat_gateway      = true
   enable_vpn_gateway      = false
